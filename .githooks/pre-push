@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# pre-push hook — the local pre-flight for the CI gate.
+#
+# PIPELINE PARITY: this hook mirrors .github/workflows/ci.yml, which runs the
+# same `just check` (black + ruff + pytest). When editing either file, update
+# the other. Install with `just install-hooks`.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+exec just check
