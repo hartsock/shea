@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shea"
+version = "0.0.1"
+description = "Shawn Hartsock's Experimental Agent — a Python host over newt-agent"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Shawn Hartsock", email = "hartsock@users.noreply.github.com" }]
+# No runtime dependencies yet. `newt-agent-py` (the PyO3 bindings) is added
+# the day shea first imports it, not before — see README "Not yet".
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff", "black"]
+
+[project.scripts]
+shea = "shea.brand:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
