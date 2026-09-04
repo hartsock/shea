@@ -1,0 +1,18 @@
+# HOOK PARITY: this pipeline is mirrored by .githooks/pre-push, which runs the
+# same `just check`. When editing this file, update the push hook to match.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: extractions/setup-just@v2
+      - run: pip install -e ".[dev]"
+      - run: just check
