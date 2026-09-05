@@ -14,3 +14,8 @@ dist/
 # newt ephemeral scratch + local secrets
 /.scratch/
 .env
+
+# Local [patch] overrides pointing at sibling checkouts — never committed.
+/.cargo/config.toml
+# `maturin develop` output inside the Python package.
+*.so
