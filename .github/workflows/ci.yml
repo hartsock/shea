@@ -10,9 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - uses: extractions/setup-just@v2
-      - run: pip install -e ".[dev]"
+      - run: python -m venv .venv && .venv/bin/pip install pytest ruff black "maturin>=1.7,<2.0"
       - run: just check
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
