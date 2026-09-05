@@ -69,6 +69,15 @@ Design rules that fall out of that:
       paths that aborted the outer loop instead of logging a failed trial,
       a `reset` that missed ignored files and restored from the index, and
       git calls that would execute a model-written `.git/config`.
+- [x] **The meta-harness move, proven live** (2026-09-05, local Ollama).
+      `Outer` + `NewtWorker` on a real goal ("add `multiply` to calc.py"):
+      round 1 on `qwen2.5-coder:3b` returned a success envelope with an
+      empty diff, so the trial was `ok: False`; `revise` escalated the
+      model; round 2 on `qwen2.5-coder:7b` produced a correct diff and the
+      verdict was `complete`. Three rows in the Merkle log (trial,
+      revision, trial), chain verified, no endpoint anywhere in it. The
+      inner loop failed, the outer loop changed the inner loop's config,
+      and the revision moved the outcome — the whole thesis in two rounds.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -80,13 +89,14 @@ newt-eval's Python docs already say to drive it with
 
 **First slice** (done; see above). **Next:**
 
-- A live run: `Outer` + `NewtWorker` against a real backend (local Ollama
-  works today; the dgx1 router path is declared but unexercised through the
-  worker), with the config's `backend` as the first revisable knob —
-  `{"name", "kind", "model", "endpoint_env"}`, the endpoint by env var name
-  only. A model change is a new process, which is fine: one process per
-  trial already.
-- Goal Mode over real trials: `ok` + newt-eval evaluators on `diff`.
+- Plateau detection, the actual meta-harness question. Today `revise` walks
+  a hardcoded model ladder. Lee's rule needs the outer loop to *notice* a
+  flat row and attribute it to the harness, which means a real signal over
+  the trial history rather than a counter.
+- Goal Mode over real trials: `ok` + newt-eval evaluators on `diff`
+  (`shea._native.eval` is already linked and unused).
+- The dgx1 router path through the worker, still unexercised: `kind:
+  openai`, endpoint by env var. Only `GET /v1/models` has been probed.
 
 **Questions:** what is the smallest `InnerConfig` that lets a revision
 actually move an outcome? Is a plateau detectable from newt-eval scorecards
@@ -183,6 +193,17 @@ Candidate issues for newt-agent; each is small.
    <stem>.txt` per size stem), and when there is none render a **WordArt
    wordmark** from `NEWT_BRAND_NAME` at each stem (10/20/40/80/126/166
    columns), so a rebrand without a designer still looks like itself.
+
+## Findings — the gate
+
+- 2026-09-05 — **a green local gate is not a green CI.** A fresh-clone,
+  fresh-venv simulation failed where `just check` passed: ruff 0.16.6
+  applies a different *default* rule set than the 0.15.2 in `~/venv`, so the
+  gate was only as reproducible as one machine's pip history. Fixed by
+  naming the rules and black's target version in `pyproject.toml` rather
+  than pinning tool versions. Both toolchains now agree. The simulation is
+  the cheap way to keep hooks-mirror-pipelines honest: clone, venv, run
+  `just check` with no `newt` on PATH — 15 pass, 8 skip.
 
 ## Findings — cryptographic structures everywhere
 
