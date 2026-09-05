@@ -32,6 +32,12 @@ newt-mcp-server = { git = "https://github.com/Gilamonster-Foundation/newt-agent"
 # newtui's core has an empty dependency closure by design (LEAF invariant);
 # no `ratatui` feature here — shea draws nothing yet.
 newtui          = { git = "https://github.com/Gilamonster-Foundation/newtui", branch = "main" }
+# The identity crate, from its main (Shawn's, not the org). `unstable-merkle` for
+# MerkleNode: Rust mints nodes because the crate's Python binding cannot encode a
+# ContentId as a link (see ROADMAP Findings). newt-core takes the same crate from
+# crates.io; the two copies never exchange types.
+content-addressable = { git = "https://github.com/hartsock/content-addressable", branch = "main", features = ["unstable-merkle"] }
+ipld-core = { version = "0.4", features = ["serde"] }
 # Same pyo3 line newt pins, so the types link.
 pyo3 = { version = "0.28", features = ["extension-module"] }
 pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
