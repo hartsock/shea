@@ -16,8 +16,9 @@ where it should.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from shea.merkle_log import MerkleLog
 
