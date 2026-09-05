@@ -5,6 +5,7 @@
 
 use pyo3::prelude::*;
 
+mod cas;
 mod ui;
 
 #[pymodule]
@@ -17,5 +18,6 @@ fn _native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     newt_eval::pyo3_module::register(py, m)?;
     newt_acp_worker::pyo3_module::register(py, m)?;
     newt_mcp_server::pyo3_module::register(py, m)?;
+    cas::register(py, m)?;
     ui::register(py, m)
 }
