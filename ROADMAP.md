@@ -182,7 +182,7 @@ The experiment's second output. Two lists, appended as they happen.
 
 - 2026-09-05 — the crate is Rust. shea's structures are born in Python, so
   every one crosses PyO3 to get an id. A `content-addressable-py` companion
-  exists (PyPI 0.1.2; the local checkout lags at 0.1.1) and `merkle` /
+  exists (PyPI 0.1.2, matching `main`) and `merkle` /
   `store` are still `unstable-*` features. Whether to bind it into
   `shea._native` from `main` or take the wheel is the first slice's call —
   observed, not pre-solved.
