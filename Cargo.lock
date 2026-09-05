@@ -141,7 +141,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f48aad8c7dc96b395393270a5fecefb8321ca9b13bfd519b56000852c9ef54d"
 dependencies = [
  "blake3",
- "content-addressable",
+ "content-addressable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ed25519-dalek",
  "hex",
  "rand 0.8.8",
@@ -958,6 +958,18 @@ name = "content-addressable"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56f67d2c6abc332e3ce3121527028af12a71794cc059308d344aa0b88b9ac204"
+dependencies = [
+ "blake3",
+ "ipld-core",
+ "serde",
+ "serde_ipld_dagcbor",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "content-addressable"
+version = "0.1.2"
+source = "git+https://github.com/hartsock/content-addressable?branch=main#5b0c907a1ea321b7b10b81a132b54bd06feace72"
 dependencies = [
  "blake3",
  "ipld-core",
@@ -3247,7 +3259,7 @@ dependencies = [
  "base64 0.22.1",
  "blake3",
  "chrono",
- "content-addressable",
+ "content-addressable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossterm",
  "ignore",
  "libc",
@@ -3367,7 +3379,7 @@ name = "newt-interaction"
 version = "0.8.0"
 source = "git+https://github.com/Gilamonster-Foundation/newt-agent?branch=main#e1d6e1adc60b6064333ded67da5df8df10917332"
 dependencies = [
- "content-addressable",
+ "content-addressable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "thiserror 2.0.20",
 ]
@@ -4959,6 +4971,8 @@ dependencies = [
 name = "shea-native"
 version = "0.0.1"
 dependencies = [
+ "content-addressable 0.1.2 (git+https://github.com/hartsock/content-addressable?branch=main)",
+ "ipld-core",
  "newt-acp-worker",
  "newt-coder",
  "newt-core",
