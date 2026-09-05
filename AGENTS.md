@@ -46,11 +46,19 @@ in lock-step (CRAFT-14). Editing one means auditing the other two.
   checkouts go through a git-ignored `.cargo/config.toml` `[patch]`.
 - **No dependency before it is imported.** A crate or package joins the
   manifest the day a module uses it.
+- **Everything is content-addressable.** Every data structure — persisted,
+  transmitted, or merely handed between loops — SHALL derive its identity
+  from its content through the `content-addressable` crate (`ContentId`,
+  `RawContentId`, `MerkleNode`, `NodeStore`, `ClassifiedCid`). Over-use
+  Merkle logs and Merkle trees on purpose: trial logs, harness revisions,
+  Rail sets, rosters, reports, experience. A hand-rolled hash or canonical
+  encoding is a defect. Run the `provenance-audit` skill before designing any
+  structure. Where a cryptographic structure causes a problem, write it in
+  `ROADMAP.md` → Findings instead of routing around it; that observation is a
+  deliverable of the experiment.
 - **Reuse newt; do not re-implement it.** Before writing a tool, a store, an
   id, or a loop, check newt-agent (`newt-data`, `newt-eval`, `newt-tools`,
-  `newt-core::agentic`), newtui, and the workspace's `content-addressable`
-  crate. Run the `provenance-audit` skill before designing any persisted
-  structure.
+  `newt-core::agentic`) and newtui.
 - **Composition roots are manifests** (CRAFT-03): `src/lib.rs` and
   `python/shea/__init__.py` hold no logic. New members get their own file.
 - **Ambient authority, engineered for OpenShell.** Do not add OCAP plumbing.
