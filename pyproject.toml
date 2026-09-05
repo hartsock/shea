@@ -10,9 +10,11 @@ requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Shawn Hartsock", email = "hartsock@users.noreply.github.com" }]
 dynamic = ["version"]
-# Runtime deps arrive compiled in `shea._native` (Cargo.toml); no Python-level
-# dependency until a module imports one.
-dependencies = []
+# Python-level deps, from source (git main), never a shelf release. The
+# content-addressable binding builds via maturin at install time (needs Rust).
+dependencies = [
+    "content-addressable @ git+https://github.com/hartsock/content-addressable@main",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff", "black", "maturin>=1.7,<2.0"]
