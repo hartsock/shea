@@ -57,7 +57,18 @@ Design rules that fall out of that:
       on disk, verified on read, replayable from `HEAD`.
 - [x] `shea.loop`: `Inner` protocol, `Rail` (hooks, priority, visibility),
       `Outer` with Goal Mode stop and the `revise` hook; every round and
-      revision a log row. Proven with a fake inner; the real one is next.
+      revision a log row. Proven with a fake inner.
+- [x] `shea.newt_worker.NewtWorker`: the first real inner — one `newt
+      worker` process per trial over newt's line-delimited JSON-RPC, the
+      workspace reset to a baseline before each trial, shea's own diff as the
+      verdict, the trial dag-cbor clean and endpoint-scrubbed for the log.
+      Offline test against a canned Ollama in ~10 ms; skips without `newt`.
+      Hardened by a 5-lens adversarial review (23 findings applied): a
+      64 KiB asyncio line limit that silently lost large trials, endpoint
+      leaks through JSON-RPC error text and retry warnings, four exception
+      paths that aborted the outer loop instead of logging a failed trial,
+      a `reset` that missed ignored files and restored from the index, and
+      git calls that would execute a model-written `.git/config`.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -67,14 +78,15 @@ newt-eval's Python docs already say to drive it with
 `asyncio.create_subprocess_exec`. `shea._native.acp_worker` has `TaskReply`,
 `Session`, `capture_diff`, `is_empty_diff`.
 
-**First slice** (loop core and log done, see above; remaining):
+**First slice** (done; see above). **Next:**
 
-- `NewtWorker`: the first real `Inner`, wrapping `newt worker` over ACP with
-  `asyncio.create_subprocess_exec`, returning the `TaskReply` and diff as the
-  trial payload.
-- A first `InnerConfig` worth revising: the worker's model pin, tool
-  visibility, and step budget — the smallest surface where a revision can
-  move an outcome.
+- A live run: `Outer` + `NewtWorker` against a real backend (local Ollama
+  works today; the dgx1 router path is declared but unexercised through the
+  worker), with the config's `backend` as the first revisable knob —
+  `{"name", "kind", "model", "endpoint_env"}`, the endpoint by env var name
+  only. A model change is a new process, which is fine: one process per
+  trial already.
+- Goal Mode over real trials: `ok` + newt-eval evaluators on `diff`.
 
 **Questions:** what is the smallest `InnerConfig` that lets a revision
 actually move an outcome? Is a plateau detectable from newt-eval scorecards
@@ -191,6 +203,13 @@ The experiment's second output. Two lists, appended as they happen.
   advised. A harness config with a callable in it dies at
   `to_canonical_dagcbor` on the way into the log (`tests/test_loop.py`).
   Design rule 2 came free with rule 5.
+- 2026-09-05 — an append-only log turns `raise` into data loss, and that
+  changes how the code is written. Five of the review's findings were the
+  same defect: an exception escaping `NewtWorker.run` (an over-long reply
+  line, an unset backend env var, a missing binary, a git failure) aborts
+  the outer loop with **no row for the round that failed**. Without a log
+  demanding a row per round, each would have looked like ordinary error
+  propagation. Every failure is now a trial with `error` set.
 
 **Where they caused one:**
 
@@ -210,10 +229,50 @@ The experiment's second output. Two lists, appended as they happen.
   pip has no lock for the `git+…@main` binding, so the Python side moves on
   every install. Tolerable while the binding is tiny; a `uv.lock` is the
   obvious fix when it stops being.
+- 2026-09-05 — a hash-chained log makes trial content a hygiene problem
+  with no undo. An endpoint that reaches a trial is in the chain forever,
+  so scrubbing has to be by value over the whole row (newt puts the
+  endpoint in JSON-RPC error text and in retry warnings, not only in
+  `metrics.endpoint`). A mutable store would have allowed a later redaction.
 - 2026-09-05 — pyo3 version skew across the line. The binding pins pyo3
   0.29, newt pins 0.28; one extension module can link only one, so the
   binding could not be registered inside `shea._native` even if wanted.
   Separate modules sidestep it; a line-wide pyo3 pin would remove it.
+
+## Upstream — newt-agent worker findings (verified live 2026-09-05)
+
+Found while building `NewtWorker`; each is a candidate newt-agent issue.
+
+1. **`NEWT_DEFAULT_MODEL` and `set_session_model` are no-ops.** newt-core
+   injects a loopback-Ollama fallback backend whenever no `[[backends]]`
+   exist, so `select_backend` never reaches the discovery branch that reads
+   `NEWT_DEFAULT_MODEL`; and the worker stores `set_session_model`'s
+   override without ever reading it. Only `--backend-*` flags pin a model.
+   Side effect: newt-eval's `--model` / `just eval-live MODEL` silently
+   evaluates the fallback model.
+2. **One bad drop-in refuses every config-resolving command.** A
+   `~/.newt/backends/*.toml` carrying an old probe marker plus a model makes
+   `newt config` and `newt worker` exit 1 ("Refusing to guess");
+   `--backend-endpoint` does not bypass it, only `--config-dir` does. A
+   downstream host cannot inherit the operator's `~/.newt` until the
+   operator repairs it by hand.
+3. **The worker's ACP is bespoke.** Method names (`initialize`,
+   `new_session`, `set_session_model`, `prompt`) and param names differ from
+   agentclientprotocol.com's (`session/new`, `session/prompt`, …); a
+   spec-conformant client gets `-32603 method not found`. Cargo.toml already
+   carries the TODO to adopt the `agent-client-protocol` crate.
+4. **`NEWT_CODER` is read two incompatible ways, and the documented form
+   breaks startup.** `newt-cli/src/lib.rs:653` declares `--coder` with
+   `env = "NEWT_CODER"`, so clap parses the variable as a bool value and
+   rejects anything but `true`/`false`; `newt-acp-worker/src/server.rs:310`
+   reads the same variable as `== "1"`. The docs at `newt-cli/src/lib.rs:1788`
+   say `NEWT_CODER=1` in a unit file works. Verified: `NEWT_CODER=1 newt
+   worker` exits 2 with `invalid value '1' for '--coder'`, while
+   `NEWT_CODER=true` starts but leaves the server-side opt-in off. The
+   process-wide coder switch is broken in both directions.
+5. **`diff_applied` can be true while `empty_diff` is true** on the coder
+   path (untracked new files count as written but the unstaged diff is
+   empty). Callers must score on their own diff, which shea now does.
 
 ## References
 
