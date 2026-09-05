@@ -37,13 +37,7 @@ A second purpose runs alongside: **verifying that newt-agent and newtui reuse
 in a configuration neither was built in** — a Python process, tracking their
 current `main`, assembling its own selection of their parts.
 
-## Where it sits in the agent line
-
-The line's capability ordering is `wyvern ≤ newt ≤ gilamonster`
-(newt-agent `docs/decisions/agent_line_architecture.md`). shea is a peer of
-gilamonster-agent in *how* it consumes newt (a host over newt components,
-rebranded through newt's runtime seam) and differs in *what* it adds: Python,
-nested harnesses, and data-science tooling instead of a Rust cockpit.
+## Safety and Security
 
 **Authority:** shea uses **ambient authority**, not OCAP. Confinement is the
 runtime's job: shea is engineered to run inside
