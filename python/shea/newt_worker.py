@@ -95,8 +95,13 @@ def _git(ws: Path, *args: str) -> str:
         "GIT_CONFIG_NOSYSTEM": "1",
         "GIT_TERMINAL_PROMPT": "0",
     }
-    proc = subprocess.run(
-        ["git", *_GIT_SAFE, *args], cwd=ws, env=env, capture_output=True, text=True
+    proc = subprocess.run(  # noqa: PLW1510 — returncode is checked below, with git's stderr
+        ["git", *_GIT_SAFE, *args],
+        cwd=ws,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if proc.returncode != 0:
         raise WorkerError(
