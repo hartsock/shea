@@ -53,6 +53,8 @@ Design rules that fall out of that:
       from both repos' `main` (git deps; `Cargo.lock` is the ratchet).
 - [x] `shea` = `newt` wearing the brand through the `NEWT_BRAND_*` seam.
 - [x] Rebrand findings recorded (see "Upstream" below).
+- [x] `shea.merkle_log.MerkleLog`: Track A's log — crate-minted Merkle nodes
+      on disk, verified on read, replayable from `HEAD`.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -176,16 +178,38 @@ The experiment's second output. Two lists, appended as they happen.
 
 **Where they solved a problem:**
 
-- (none yet)
+- 2026-09-05 — cross-language identity, proven not assumed. A genesis node
+  minted by Rust's `MerkleNode` has the same id as the Python dict
+  `{"payload": …, "parents": []}` minted by the binding's `content_id`
+  (`tests/test_merkle_log.py`). One canonical form, two languages, no
+  bespoke encoding — the failure mode the workspace rule warns about is
+  tested against rather than hoped away.
+- 2026-09-05 — tamper evidence for free. `MerkleLog.node` re-derives the id
+  from the stored bytes; flipping one byte of an earlier entry fails the
+  walk. No checksum field, no signature scheme, nothing to design.
 
 **Where they caused one:**
 
 - 2026-09-05 — the crate is Rust. shea's structures are born in Python, so
   every one crosses PyO3 to get an id. A `content-addressable-py` companion
   exists (PyPI 0.1.2, matching `main`) and `merkle` /
-  `store` are still `unstable-*` features. Whether to bind it into
-  `shea._native` from `main` or take the wheel is the first slice's call —
-  observed, not pre-solved.
+  `store` are still `unstable-*` features. Resolved as *both*: the binding
+  installs from the crate's `main` via pip for values and ids; `shea._native`
+  takes the core crate (git `main`, `unstable-merkle`) for nodes.
+- 2026-09-05 — Python cannot build a Merkle node. The binding refuses a
+  `ContentId` inside a value (`TypeError: unsupported type ContentId`), so
+  parent links cannot be expressed from Python; and `MerkleNode` is not bound
+  at all. shea mints nodes in Rust (`src/cas.rs`) and Python only stores,
+  verifies, decodes. Upstream candidate for content-addressable-py: encode
+  `ContentId` as an IPLD link, expose `MerkleNode`.
+- 2026-09-05 — two ratchets, unequal. Cargo locks the git rev of the crate;
+  pip has no lock for the `git+…@main` binding, so the Python side moves on
+  every install. Tolerable while the binding is tiny; a `uv.lock` is the
+  obvious fix when it stops being.
+- 2026-09-05 — pyo3 version skew across the line. The binding pins pyo3
+  0.29, newt pins 0.28; one extension module can link only one, so the
+  binding could not be registered inside `shea._native` even if wanted.
+  Separate modules sidestep it; a line-wide pyo3 pin would remove it.
 
 ## References
 
