@@ -1,25 +1,33 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
 
 [project]
 name = "shea"
-version = "0.0.1"
-description = "Shawn Hartsock's Experimental Agent — a Python host over newt-agent"
+description = "Shawn Hartsock's Experimental Agent — a Python host over newt-agent and newtui, built from main"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Shawn Hartsock", email = "hartsock@users.noreply.github.com" }]
-# No runtime dependencies yet. `newt-agent-py` (the PyO3 bindings) is added
-# the day shea first imports it, not before — see README "Not yet".
+dynamic = ["version"]
+# Runtime deps arrive compiled in `shea._native` (Cargo.toml); no Python-level
+# dependency until a module imports one.
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff", "black"]
+dev = ["pytest>=7", "ruff", "black", "maturin>=1.7,<2.0"]
 
 [project.scripts]
 shea = "shea.brand:main"
 
+[tool.maturin]
+python-source = "python"
+module-name = "shea._native"
+bindings = "pyo3"
+features = ["pyo3/extension-module"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# `maturin develop` drops the compiled `_native` into python/shea/, so tests
+# run from the tree without a pip install.
+pythonpath = ["python"]
