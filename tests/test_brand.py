@@ -8,7 +8,6 @@ import shutil
 import subprocess
 
 import pytest
-
 from shea.brand import BRAND, apply_brand
 
 

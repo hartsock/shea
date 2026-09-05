@@ -14,7 +14,6 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
-
 from shea.merkle_log import MerkleLog
 from shea.newt_worker import DEFAULTS, NewtWorker, WorkerError, baseline, reset
 

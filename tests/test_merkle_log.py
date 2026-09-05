@@ -3,9 +3,8 @@ and a Python-side value hashes to the same id Rust gives the same node."""
 
 from __future__ import annotations
 
-import pytest
 import content_addressable as ca
-
+import pytest
 from shea._native import cas
 from shea.merkle_log import MerkleLog
 

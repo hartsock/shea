@@ -4,7 +4,6 @@ and every row of it in the log."""
 from __future__ import annotations
 
 import pytest
-
 from shea.loop import Outer, Rail
 from shea.merkle_log import MerkleLog
 
