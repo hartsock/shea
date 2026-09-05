@@ -11,8 +11,9 @@ bytes, not a lookup: change any earlier node and every later id changes.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import content_addressable as ca
 
