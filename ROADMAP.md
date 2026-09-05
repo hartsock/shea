@@ -55,6 +55,9 @@ Design rules that fall out of that:
 - [x] Rebrand findings recorded (see "Upstream" below).
 - [x] `shea.merkle_log.MerkleLog`: Track A's log — crate-minted Merkle nodes
       on disk, verified on read, replayable from `HEAD`.
+- [x] `shea.loop`: `Inner` protocol, `Rail` (hooks, priority, visibility),
+      `Outer` with Goal Mode stop and the `revise` hook; every round and
+      revision a log row. Proven with a fake inner; the real one is next.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -64,17 +67,14 @@ newt-eval's Python docs already say to drive it with
 `asyncio.create_subprocess_exec`. `shea._native.acp_worker` has `TaskReply`,
 `Session`, `capture_diff`, `is_empty_diff`.
 
-**First slice:**
+**First slice** (loop core and log done, see above; remaining):
 
-- `Inner` protocol: `run(goal, config) -> Trial`. One implementation,
-  `NewtWorker`, wrapping `newt worker` over ACP.
-- `Outer`: rounds until a stopping predicate says `complete | blocked` or a
-  cap trips. `revise(trials) -> InnerConfig` is the meta-harness hook — the
-  one method that changes the inner loop, returning a new *config*, logged.
-- `Rail(hooks, handler, priority, visible_to)` at task-level hooks.
-- The trials log as a **Merkle log**: one leaf per inner run, one per
-  harness revision, each carrying the previous root, so "which harness
-  version produced this row" is a proof, not a lookup.
+- `NewtWorker`: the first real `Inner`, wrapping `newt worker` over ACP with
+  `asyncio.create_subprocess_exec`, returning the `TaskReply` and diff as the
+  trial payload.
+- A first `InnerConfig` worth revising: the worker's model pin, tool
+  visibility, and step budget — the smallest surface where a revision can
+  move an outcome.
 
 **Questions:** what is the smallest `InnerConfig` that lets a revision
 actually move an outcome? Is a plateau detectable from newt-eval scorecards
@@ -187,6 +187,10 @@ The experiment's second output. Two lists, appended as they happen.
 - 2026-09-05 — tamper evidence for free. `MerkleLog.node` re-derives the id
   from the stored bytes; flipping one byte of an earlier entry fails the
   walk. No checksum field, no signature scheme, nothing to design.
+- 2026-09-05 — "the outer loop edits data, not code" is enforced, not
+  advised. A harness config with a callable in it dies at
+  `to_canonical_dagcbor` on the way into the log (`tests/test_loop.py`).
+  Design rule 2 came free with rule 5.
 
 **Where they caused one:**
 
