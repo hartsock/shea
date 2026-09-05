@@ -28,6 +28,20 @@ module-name = "shea._native"
 bindings = "pyo3"
 features = ["pyo3/extension-module"]
 
+[tool.black]
+# Explicit for the same reason as the ruff rules below: black otherwise infers
+# a target from the environment and warns (or reformats) differently per
+# version. Matches requires-python.
+target-version = ["py310"]
+
+[tool.ruff.lint]
+# Explicit, because ruff's DEFAULT rule set drifts between releases: 0.15 and
+# 0.16 disagreed about this very tree, so `just check` passed locally and CI
+# failed. Naming the rules makes the gate reproducible across versions.
+# E4/E7/E9 + F is ruff's own default (E501 left to black); I = import order,
+# UP = modern syntax, B = bugbear, PLW = pylint warnings.
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "PLW"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # `maturin develop` drops the compiled `_native` into python/shea/, so tests
