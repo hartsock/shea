@@ -7,16 +7,26 @@
 ## What this repo is
 
 Shawn Hartsock's Experimental Agent: a Python host over newt-agent's crates
-(PyO3) and CLI/TUI components. Read `README.md` for the charter and the six
-goals. It is also a live test of newt's `NEWT_BRAND_*` rebranding seam.
+and newtui's components (PyO3, built from their `main`), plus newt's CLI/TUI.
+Read `README.md` for the charter and the six goals. It is also a live test of
+newt's `NEWT_BRAND_*` rebranding seam and of newt/newtui reusability.
+
+## Layout
+
+- `Cargo.toml` + `src/` — the `shea-native` PyO3 crate (`shea._native`).
+  `src/lib.rs` is a composition root; members register themselves from their
+  own file (`src/ui.rs`).
+- `python/shea/` — the Python package. `__init__.py` holds no logic.
+- `tests/` — pytest; `test_native.py` calls one thing per reused crate family.
 
 ## Build + test
 
 ```bash
 source ~/venv/bin/activate      # workspace rule: ~/venv for all Python work
-pip install -e ".[dev]"
+pip install pytest ruff black maturin
 just install-hooks              # .githooks/ = commit-msg + pre-push
-just check                      # black + ruff + pytest — the local CI mirror
+just build                      # maturin develop (first build: minutes)
+just check                      # black + ruff + cargo fmt + clippy + pytest
 ```
 
 `just check`, `.githooks/pre-push`, and `.github/workflows/ci.yml` must stay
@@ -30,16 +40,21 @@ in lock-step (CRAFT-14). Editing one means auditing the other two.
   blocks them. `Co-Authored-By:` attribution is fine.
 - **One file per commit**, WHAT/WHY in the message. Author email is
   `hartsock@users.noreply.github.com`.
-- **No dependency before it is imported.** `newt-agent-py` joins
-  `pyproject.toml` the day a module imports it, pinned to the newt rev it was
-  built from.
+- **Source, not shelves.** newt-agent and newtui are git dependencies on
+  `main`; never swap them for crates.io / PyPI releases or a hand-pinned rev.
+  `just update` ratchets `Cargo.lock` forward; commit the lock. Local sibling
+  checkouts go through a git-ignored `.cargo/config.toml` `[patch]`.
+- **No dependency before it is imported.** A crate or package joins the
+  manifest the day a module uses it.
 - **Reuse newt; do not re-implement it.** Before writing a tool, a store, an
   id, or a loop, check newt-agent (`newt-data`, `newt-eval`, `newt-tools`,
-  `newt-core::agentic`) and the workspace's `content-addressable` crate. Run
-  the `provenance-audit` skill before designing any persisted structure.
-- **Composition roots are manifests** (CRAFT-03): `src/shea/__init__.py`
-  holds no logic. New members get their own file.
+  `newt-core::agentic`), newtui, and the workspace's `content-addressable`
+  crate. Run the `provenance-audit` skill before designing any persisted
+  structure.
+- **Composition roots are manifests** (CRAFT-03): `src/lib.rs` and
+  `python/shea/__init__.py` hold no logic. New members get their own file.
 - **Ambient authority, engineered for OpenShell.** Do not add OCAP plumbing.
 - **Regression rule:** every bug fix lands with a test that failed first.
 - **dgx1 is inference only.** Never clone, build, or run agents there.
-- **Clean up:** one worktree per task, `git worktree remove` when done.
+- **Clean up:** one worktree per task, `git worktree remove` when done;
+  `target/` is disposable.
