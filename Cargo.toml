@@ -1,0 +1,38 @@
+# shea-native — the Python extension that assembles newt-agent and newtui.
+#
+# DEPENDENCY POLICY: source, not shelves. newt-agent and newtui are git
+# dependencies on `main`, never crates.io / PyPI releases (those lag main by
+# weeks, and this repo exists to test whether *current* newt and newtui reuse
+# in a foreign host). Cargo.lock records the exact commits a build used;
+# `just update` ratchets them forward. A local, uncommitted checkout is
+# reachable through a `[patch]` in .cargo/config.toml — see README.
+[package]
+name = "shea-native"
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.88"
+license = "Apache-2.0"
+description = "Native extension for shea: newt-agent's PyO3 modules plus a newtui bridge, built from main"
+publish = false
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+newt-core       = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-data       = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-tools      = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-inference  = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-coder      = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-eval       = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-acp-worker = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+newt-mcp-server = { git = "https://github.com/Gilamonster-Foundation/newt-agent", branch = "main", features = ["pyo3"] }
+# newtui's core has an empty dependency closure by design (LEAF invariant);
+# no `ratatui` feature here — shea draws nothing yet.
+newtui          = { git = "https://github.com/Gilamonster-Foundation/newtui", branch = "main" }
+# Same pyo3 line newt pins, so the types link.
+pyo3 = { version = "0.28", features = ["extension-module"] }
+pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
+tokio = { version = "1", features = ["full"] }
