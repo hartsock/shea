@@ -36,8 +36,12 @@ in lock-step (CRAFT-14). Editing one means auditing the other two.
 
 - **Never push to `main`.** Branch → TDD → `just check` green → push → PR.
   Humans merge. Never `--no-verify`.
-- **No Claude session URLs in commits or PR bodies.** `.githooks/commit-msg`
-  blocks them. `Co-Authored-By:` attribution is fine.
+- **Session trailers ARE allowed here** (owner's decision, 2026-09-05) — a
+  documented exception to the workspace-wide ban in `~/workspaces/CLAUDE.md`.
+  shea is private and its subject is how agentic work gets produced, so the
+  session that produced a commit is provenance, not plumbing. Keep
+  `Co-Authored-By:` too. If shea goes public, revisit and scrub history first.
+  This exception is shea's alone; other repos still expunge session links.
 - **One file per commit**, WHAT/WHY in the message. Author email is
   `hartsock@users.noreply.github.com`.
 - **Source, not shelves.** newt-agent and newtui are git dependencies on
