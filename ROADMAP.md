@@ -40,9 +40,12 @@ Design rules that fall out of that:
    when a Rail needs to be inside the loop.
 4. The DSL is plain Python objects composed together. No string language,
    no parser.
-5. Persisted rows (trials, harness revisions, experience) get content-derived
-   ids via the `content-addressable` crate; run the `provenance-audit` skill
-   before designing them.
+5. **Everything is content-addressable.** Not just persisted rows: every
+   data structure shea defines derives its identity from its content through
+   the `content-addressable` crate, and Merkle logs and trees are over-used
+   on purpose — trials, harness revisions, Rail sets, rosters, reports,
+   experience. Traceability is forced by construction. Where that causes a
+   problem, it goes in Findings below, not around.
 
 ## Done
 
@@ -67,8 +70,9 @@ newt-eval's Python docs already say to drive it with
   cap trips. `revise(trials) -> InnerConfig` is the meta-harness hook — the
   one method that changes the inner loop, returning a new *config*, logged.
 - `Rail(hooks, handler, priority, visible_to)` at task-level hooks.
-- `trials.jsonl`-shaped log, one row per inner run, one row per revision,
-  content-addressed ids.
+- The trials log as a **Merkle log**: one leaf per inner run, one per
+  harness revision, each carrying the previous root, so "which harness
+  version produced this row" is a proof, not a lookup.
 
 **Questions:** what is the smallest `InnerConfig` that lets a revision
 actually move an outcome? Is a plateau detectable from newt-eval scorecards
@@ -165,6 +169,23 @@ Candidate issues for newt-agent; each is small.
    <stem>.txt` per size stem), and when there is none render a **WordArt
    wordmark** from `NEWT_BRAND_NAME` at each stem (10/20/40/80/126/166
    columns), so a rebrand without a designer still looks like itself.
+
+## Findings — cryptographic structures everywhere
+
+The experiment's second output. Two lists, appended as they happen.
+
+**Where they solved a problem:**
+
+- (none yet)
+
+**Where they caused one:**
+
+- 2026-09-05 — the crate is Rust. shea's structures are born in Python, so
+  every one crosses PyO3 to get an id. A `content-addressable-py` companion
+  exists (PyPI 0.1.2; the local checkout lags at 0.1.1) and `merkle` /
+  `store` are still `unstable-*` features. Whether to bind it into
+  `shea._native` from `main` or take the wheel is the first slice's call —
+  observed, not pre-solved.
 
 ## References
 
