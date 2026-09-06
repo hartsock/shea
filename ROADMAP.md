@@ -78,6 +78,11 @@ Design rules that fall out of that:
       revision, trial), chain verified, no endpoint anywhere in it. The
       inner loop failed, the outer loop changed the inner loop's config,
       and the revision moved the outcome — the whole thesis in two rounds.
+- [x] `shea.bandit.Bandit`: `revise` fit from the log instead of hand-written
+      — Thompson sampling over an arm set, a `Beta(wins+1, losses+1)`
+      posterior per arm, `pick` sampled once per lane so a fan-out outer gets
+      an independent draw for each. Evidence replaces the model ladder;
+      plateau *detection* stays open.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -89,10 +94,11 @@ newt-eval's Python docs already say to drive it with
 
 **First slice** (done; see above). **Next:**
 
-- Plateau detection, the actual meta-harness question. Today `revise` walks
-  a hardcoded model ladder. Lee's rule needs the outer loop to *notice* a
-  flat row and attribute it to the harness, which means a real signal over
-  the trial history rather than a counter.
+- Plateau detection, the actual meta-harness question. `revise` is now a
+  posterior over the trial history (`shea.bandit`) rather than a counter,
+  but a sample landing on the incumbent is one draw, not a flat row. Lee's
+  rule still needs the outer loop to *notice* a plateau and attribute it to
+  the harness version that produced it.
 - Goal Mode over real trials: `ok` + newt-eval evaluators on `diff`
   (`shea._native.eval` is already linked and unused).
 - The dgx1 router path through the worker, still unexercised: `kind:
@@ -113,7 +119,7 @@ crews in worktrees. The trait is a deliberate injection seam.
 PyO3 — the one piece of Rust worth writing early. With it, the outer loop
 composes inner sub-agents at runtime: a `Swarm` inner that fans a goal out to
 several `NewtWorker`s, each with its own gated Rail set, same loop
-semantics. This is openJiuwen's "sub-agents reuse the substrate" and it is
+semantics. Each lane's config comes from `Bandit.pick` — one draw per lane. This is openJiuwen's "sub-agents reuse the substrate" and it is
 the reason shea is in Python.
 
 **Questions:** does the Python runner need the in-process `TurnDriver`
