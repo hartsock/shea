@@ -78,6 +78,11 @@ Design rules that fall out of that:
       revision, trial), chain verified, no endpoint anywhere in it. The
       inner loop failed, the outer loop changed the inner loop's config,
       and the revision moved the outcome — the whole thesis in two rounds.
+- [x] `shea.display.herdr_rail`: the outer loop's rows in herdr's own sidebar
+      through `pane report-metadata` tokens — wired as a Rail, so an absent
+      herdr is a shorter rail list rather than a branch in the loop. herdr is
+      bin-only (no `src/lib.rs`), so the seam is its CLI, never a link, and a
+      headless run stays the normal case rather than a degraded one.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -148,7 +153,9 @@ newt-cli's `parse_with_help` + `dispatch` are library entry points.
   `dispatch` instead of exec'ing the binary. Waits for a reason; newt-cli's
   default features pull the embedded candle summarizer.
 - Trial dashboards as newtui panels: the outer loop's rows as live widgets
-  (newtui's "Grafana you can drive from a terminal" direction).
+  (newtui's "Grafana you can drive from a terminal" direction). Distinct from
+  `shea.display`, which renders lanes into a herdr sidebar that already exists;
+  these are shea's own surfaces, and they are what a headless run still lacks.
 
 ## Track E — data science, reporting, open-source EDA
 
