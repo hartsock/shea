@@ -78,6 +78,11 @@ Design rules that fall out of that:
       revision, trial), chain verified, no endpoint anywhere in it. The
       inner loop failed, the outer loop changed the inner loop's config,
       and the revision moved the outcome — the whole thesis in two rounds.
+- [x] `shea.plateau`: Lee's second half. A plateau is the outcome not moving
+      across a window of rounds; `blocked_on_plateau` wraps a Goal Mode
+      predicate so a flat row returns `blocked` instead of `continue`. Before
+      this, `blocked` was reachable only by exhausting `max_rounds` — a timeout
+      wearing a verdict's clothes.
 
 ## Track A — the loops (`shea.loop`)
 
@@ -89,10 +94,10 @@ newt-eval's Python docs already say to drive it with
 
 **First slice** (done; see above). **Next:**
 
-- Plateau detection, the actual meta-harness question. Today `revise` walks
-  a hardcoded model ladder. Lee's rule needs the outer loop to *notice* a
-  flat row and attribute it to the harness, which means a real signal over
-  the trial history rather than a counter.
+- `revise` is still a hardcoded model ladder — the plateau is noticed now
+  (`shea.plateau`), but what the harness does about it is unchanged. What the
+  outer loop still owes is a *response* to `blocked`: revising the arm set
+  itself, rather than continuing to draw from one that has been shown flat.
 - Goal Mode over real trials: `ok` + newt-eval evaluators on `diff`
   (`shea._native.eval` is already linked and unused).
 - The dgx1 router path through the worker, still unexercised: `kind:
