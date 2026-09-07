@@ -1,5 +1,7 @@
 # shea — Shawn Hartsock's Experimental Agent
 
+![Shea logo](docs/logo/shea_logo_banner_large.png)
+
 **Status:** chartered 2026-09-04 · private · v0.0.1 (newt and newtui assembled from source; the harness itself not yet begun)
 
 `shea` is a Python host assembled from
@@ -89,8 +91,9 @@ Findings so far (newt 0.8.0, 2026-09-04):
 - **Not covered by the seam:** the agent's commit *identity* (name and email
   stay `newt-agent`). A shea identity needs `~/.newt/agent-identity.toml`, or
   `newt identity set --name … --email …`.
-- **Not yet exercised:** logo override (`LOGO_DIR`/`LOGO_PREFIX`) — shea has
-  no art; newt falls back to its own logo gracefully.
+- **Not yet exercised:** logo override (`LOGO_DIR`/`LOGO_PREFIX`) — shea now
+  carries its own banner art, while newt still falls back to its own logo
+  gracefully.
 
 ## Quick start
 
